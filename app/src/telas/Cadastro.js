@@ -7,32 +7,63 @@ import Constants from 'expo-constants';
 
 
 
-export default function Login() {
+export default function Cadastro() {
   const navigation = useNavigation();
+
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
+  const [nome, setNome] = useState();
+  const [matricula, setMatricula] = useState();
+  const [telefone, setTelefone] = useState();
+  const [dataNasc, setDataNasc] = useState();
   return (
     <View style={styles.container}>
             <StatusBar style="auto" />
-            <Text style={styles.titulo}>Sistema de Empréstimos</Text>
+            <Text style={styles.titulo}>Cadastre-se</Text>
+
+            <Text style={styles.textInput}>Nome</Text>
             <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder="Seu nome"
+                
+            />
+            <Text style={styles.textInput}>Email</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Seu email"
                 keyboardType="email-address"
                 autoCapitalize="none"
             />
-
+            <Text style={styles.textInput}>Matrícula</Text>
             <TextInput
                 style={styles.input}
-                placeholder="Senha"
+                placeholder="Sua matrícula"
+                
+            />
+            <Text style={styles.textInput}>Data de nascimento</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Formato (dd/MM/AAAA)"
+                
+            />
+            <Text style={styles.textInput}>Telefone</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Seu telefone"
+                
+            />
+            <Text style={styles.textInput}>Crie uma senha</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Deve ter no mínimo 6 caracteres"
                 secureTextEntry
             />
+            
             <Button
-                title="Entrar"
+                title="Cadastra-se"
                 color="red"
             />
 
-            <Button title="Crie uma conta" color="gray" onPress={ () => navigation.navigate('Cadastro')}  />
         </View>
   );
 }
@@ -53,6 +84,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 4,
+      },
+
+      textInput: {
+        textAlign: 'left',
       },
 
       titulo: {
