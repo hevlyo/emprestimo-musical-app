@@ -11,12 +11,12 @@ import Constants from 'expo-constants';
 export default function Cadastro() {
   const navigation = useNavigation();
 
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
-  const [nome, setNome] = useState();
-  const [matricula, setMatricula] = useState();
-  const [telefone, setTelefone] = useState();
-  const [dataNasc, setDataNasc] = useState();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nome, setNome] = useState('');
+  const [matricula, setMatricula] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [dataNasc, setDataNasc] = useState('');
 
    function cadastrar() {
     if (nome === '' || email === '' || matricula === '' || telefone === '' ||  dataNasc === '' || password === '' ) {
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'stretch',
         paddingTop: Constants.statusBarHeight,
         backgroundColor: '#fff',
         padding: 20,
@@ -141,5 +141,6 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 20,
+        textAlign: 'center',
       },
 });
