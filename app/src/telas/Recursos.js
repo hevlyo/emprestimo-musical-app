@@ -36,8 +36,9 @@ export default function Recursos() {
   const [marca, setMarca] = useState('');
 
   useEffect(() =>{
-    setRecursos([]);
+    
     function listarRecursos() {
+      setRecursos([]);
       const dbRef = ref(database, 'recursos');
       onValue(dbRef, (snapshot) => {
         snapshot.forEach((childSnapshot) => {
@@ -61,7 +62,7 @@ export default function Recursos() {
 
   }, [])
 
-  async function cadastrarRecurso() {
+  /* async function cadastrarRecurso() {
     const recursoRef = ref(database, 'recursos');
     const newRecursoRef = push(recursoRef);
     await set(newRecursoRef, {
@@ -79,9 +80,8 @@ export default function Recursos() {
     .catch((error) => {
       alert("Ocorreu um erro: "+error.code)
     })
-
-    
-  }
+}
+ */
 
   function deixarRecursoIndisponivel(keyRecurso){
     const updates = {};
@@ -104,7 +104,7 @@ export default function Recursos() {
     onValue(dbRef, (snapshot) => {
       snapshot.forEach((childSnapshot) => {
         const childKey = childSnapshot.key;
-        if (childSnapshot.val().codigo === codRecursoLowcase.toLowerCase()) {
+        if (childSnapshot.val().codigo === codRecursoLowcase.toLowerCase().trim() &&  childSnapshot.val().disponivel === true) {
             deixarRecursoIndisponivel(childKey);
             alert(childSnapshot.val().nome + " reservado com sucesso");
             setCodRecurso('');
