@@ -5,11 +5,24 @@ import { database, ref, set, push, onValue } from '../firebaseConnection';
 import { child } from 'firebase/database';
 
 const Item = ({data}) => (
+
+
   <View style={styles.divListRecursos}>
     <Text style={styles.title}>{data.nome}</Text>
-    <Text>{data.codigo}</Text>
-    <Text>{data.ano}</Text>
-    <Text>{data.marca}</Text>
+    <View style={styles.divInterna}>
+        <View style={styles.divIntRow}>
+          <Text style={{fontWeight: 'bold'}}>Código:</Text>
+          <Text style={{textTransform: 'uppercase'}}>{"  "+data.codigo+"    "}</Text>
+          <Text style={{fontWeight: 'bold'}}>Ano:</Text>
+          <Text>{"  "+data.ano}</Text>
+        </View>
+        <View style={styles.divIntRowDir}>
+          <Text style={{fontWeight: 'bold'}}>Marca:</Text>
+          <Text>{"  "+data.marca}</Text>
+        </View>
+        
+    </View>
+    
   </View>
 );
 
@@ -141,5 +154,30 @@ const styles = StyleSheet.create({
     marginVertical: 15,
     borderLeftWidth: 5,
     borderLeftColor: 'black',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 7,
+  },
+
+  divIntRow: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'stretch'
+  },
+
+  divIntRowDir: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'baseline',
+  },
+
+  title: {
+    fontWeight: 'bold',
+    fontSize: 15,
+    marginBottom: 12,
   }
 });

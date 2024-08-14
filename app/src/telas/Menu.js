@@ -2,9 +2,10 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../firebaseConnection';
-import { database, ref, set, push, onValue } from '../firebaseConnection';
+import { database, ref, onValue } from '../firebaseConnection';
 import { signOut } from 'firebase/auth';
 import { useEffect, useState } from 'react';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 export default function Menu() {
   const navigation = useNavigation();
@@ -33,13 +34,17 @@ export default function Menu() {
   }
   return (
     <View style={styles.container}>
-      <View style={styles.barra}>
-          <Text style={styles.textoBarra}>Bem-vindo, {username}</Text>
+      <View style={styles.divBarra}>
+        <View style={styles.barra}>
+            <Text style={styles.textoBarra}>Bem-vindo, {username}</Text>
+            <Icon style={styles.iconUser} name="home" size={30} color="#fff" />
         </View>
+      </View>
+      
       <View style={styles.divBtn}>  
         <Text style={styles.destaque}>Último acesso {user.metadata.lastSignInTime}</Text>
         <Button style={styles.btnMenu} title='Recursos disponíveis' color="red" onPress={() => navigation.navigate('Recursos')}/>
-        <Button style={styles.btnMenu} title='Perfil' color="red"/>
+        <Button style={styles.btnMenu} title='Perfil' color="red" onPress={() => navigation.navigate('Perfil')}/>
         <Button style={styles.btnMenu} title='Sair' color="red" onPress={deslogar}/>
       </View>
       <Text style={styles.destaque}>Versão 1.0.0 (Beta)</Text>
@@ -52,7 +57,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
+    alignItems: 'stretch',
   },
 
   divBtn: {
@@ -60,20 +65,28 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
     justifyContent: 'space-evenly',
     maxHeight: 570,
+    paddingHorizontal: 20,
     
   },
 
+
   barra: {
     backgroundColor: 'black',
-    paddingHorizontal: 10,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  iconUser: {
+    
   },
   textoBarra: {
     color: '#fff',
     fontSize: 15,
   },
 
-  destaque: {fontWeight: '600'},
+  destaque: {fontWeight: '600', textAlign: 'center'},
 
 
 });
