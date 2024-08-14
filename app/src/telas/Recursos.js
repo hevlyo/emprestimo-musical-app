@@ -1,8 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, FlatList, TextInput, Button } from 'react-native';
 import { useState, useEffect } from 'react';
-import { database, ref, set, push, onValue } from '../firebaseConnection';
-import { child } from 'firebase/database';
+import { database, ref, set, push, onValue, auth} from '../firebaseConnection';
+
+import { update } from 'firebase/database';
 
 const Item = ({data}) => (
 
@@ -27,6 +28,7 @@ const Item = ({data}) => (
 );
 
 export default function Recursos() {
+  const user = auth.currentUser;
   const [recursos, setRecursos] = useState([]);
   const [nomeRecurso, setNomeRecurso] = useState('');
   const [codRecurso, setCodRecurso] = useState('');
@@ -34,22 +36,28 @@ export default function Recursos() {
   const [marca, setMarca] = useState('');
 
   useEffect(() =>{
-    const dbRef = ref(database, 'recursos');
     setRecursos([]);
-    onValue(dbRef, (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-        const childKey = childSnapshot.key;
-        if (childSnapshot.val().disponivel === true) {
-          let data = {
-            nome: childSnapshot.val().nome,
-            codigo: childSnapshot.val().codigo,
-            ano: childSnapshot.val().ano,
-            marca: childSnapshot.val().marca
+    function listarRecursos() {
+      const dbRef = ref(database, 'recursos');
+      onValue(dbRef, (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          const childKey = childSnapshot.key;
+          if (childSnapshot.val().disponivel === true) {
+            let data = {
+              nome: childSnapshot.val().nome,
+              codigo: childSnapshot.val().codigo,
+              ano: childSnapshot.val().ano,
+              marca: childSnapshot.val().marca
+            }
+            setRecursos(oldArray => [...oldArray, data]);
           }
-          setRecursos(oldArray => [...oldArray, data]);
-        }
+        }); 
+      }, {
+          onlyOnce: true
       });
-    });
+      
+    }
+    listarRecursos();
 
   }, [])
 
@@ -75,6 +83,39 @@ export default function Recursos() {
     
   }
 
+  function deixarRecursoIndisponivel(keyRecurso){
+    const updates = {};
+    updates['/recursos/'+keyRecurso+'/disponivel'] = false;
+
+    update(ref(database), updates)
+      .then(() =>{
+        console.log("Dados atualizados com sucesso!");
+      })
+
+      .catch((error) =>{
+        console.error("Erro ao atualizar dados: ", error);
+      })
+
+  }
+
+  function reservarRecurso() {
+    const dbRef = ref(database, 'recursos');
+    const codRecursoLowcase = codRecurso; 
+    onValue(dbRef, (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        const childKey = childSnapshot.key;
+        if (childSnapshot.val().codigo === codRecursoLowcase.toLowerCase()) {
+            deixarRecursoIndisponivel(childKey);
+            alert(childSnapshot.val().nome + " reservado com sucesso");
+            setCodRecurso('');
+            return;
+        }
+      });
+    });
+  }
+
+  
+
   return (
     <View style={styles.container}>
        <Text style={styles.titulo}>Reserve um recurso</Text>
@@ -84,8 +125,8 @@ export default function Recursos() {
         onChangeText={(texto) => setCodRecurso(texto)}
         value={codRecurso}
       />
-      <Button title='Reservar recurso' onPress={() => alert('testando')}/>
-      <Text style={styles.titulo}>Recursos Disponíveis</Text>
+      <Button title='Reservar recurso' onPress={reservarRecurso}/>
+      <Text style={styles.titulo2}>Recursos Disponíveis</Text>
 
       {/* TextInput
         style={styles.input}
