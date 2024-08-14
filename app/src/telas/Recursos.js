@@ -77,6 +77,14 @@ export default function Recursos() {
 
   return (
     <View style={styles.container}>
+       <Text style={styles.titulo}>Reserve um recurso</Text>
+       <TextInput
+        style={styles.input}
+        placeholder='Digite o código do recurso para reserva-lo'
+        onChangeText={(texto) => setCodRecurso(texto)}
+        value={codRecurso}
+      />
+      <Button title='Reservar recurso' onPress={() => alert('testando')}/>
       <Text style={styles.titulo}>Recursos Disponíveis</Text>
 
       {/* TextInput
@@ -132,9 +140,9 @@ const styles = StyleSheet.create({
   input: {
     //width: '200%',
     marginBottom: 10,
+
     padding: 10,
     borderWidth: 1,
-    marginBottom: 40,
     marginTop: 10,
     borderColor: '#ccc',
     borderRadius: 10,
