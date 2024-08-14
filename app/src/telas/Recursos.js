@@ -32,7 +32,6 @@ export default function Recursos() {
   const [recursos, setRecursos] = useState([]);
   const [nomeRecurso, setNomeRecurso] = useState('');
   const [codRecurso, setCodRecurso] = useState('');
-  const [anoRecurso, setAnoRecurso] = useState();
   const [marca, setMarca] = useState('');
 
   useEffect(() =>{
@@ -62,15 +61,14 @@ export default function Recursos() {
 
   }, [])
 
-  /* async function cadastrarRecurso() {
-    const recursoRef = ref(database, 'recursos');
-    const newRecursoRef = push(recursoRef);
-    await set(newRecursoRef, {
-        nome: nomeRecurso,
-        ano: Number(anoRecurso),
-        codigo: codRecurso,
-        marca: marca,
-        disponivel: true
+  function cadastrarRecurso(nomeRecurso, keyUser, emailUser, keyRecurso) {
+    const emprestimoRef = ref(database, 'emprestimos');
+    const newEmprestimoRef = push(emprestimoRef);
+     set(newEmprestimoRef, {
+        nomeRecurso: nomeRecurso,
+        keyRecurso: keyRecurso,
+        keyUser: keyUser,
+        emailUser: emailUser,
     })
 
     .then(() => {
@@ -80,12 +78,12 @@ export default function Recursos() {
     .catch((error) => {
       alert("Ocorreu um erro: "+error.code)
     })
-}
- */
+  }
+ 
 
   function deixarRecursoIndisponivel(keyRecurso){
     const updates = {};
-    updates['/recursos/'+keyRecurso+'/disponivel'] = false;
+    updates['recursos/'+keyRecurso+'/disponivel'] = false;
 
     update(ref(database), updates)
       .then(() =>{
@@ -101,13 +99,15 @@ export default function Recursos() {
   function reservarRecurso() {
     const dbRef = ref(database, 'recursos');
     const codRecursoLowcase = codRecurso; 
+
     onValue(dbRef, (snapshot) => {
       snapshot.forEach((childSnapshot) => {
         const childKey = childSnapshot.key;
-        if (childSnapshot.val().codigo === codRecursoLowcase.toLowerCase().trim() &&  childSnapshot.val().disponivel === true) {
+        if (childSnapshot.val().codigo === codRecursoLowcase.toLowerCase().trim() && childSnapshot.val().disponivel === true) {
             deixarRecursoIndisponivel(childKey);
-            alert(childSnapshot.val().nome + " reservado com sucesso");
+            cadastrarRecurso(childSnapshot.val().nome, user.uid, user.email, childKey);
             setCodRecurso('');
+            alert(childSnapshot.val().nome + " reservado com sucesso");
             return;
         }
       });
