@@ -7,8 +7,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import Constants from 'expo-constants';
 
 
-
-export default function Login() {
+export default function() {
   const navigation = useNavigation();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();

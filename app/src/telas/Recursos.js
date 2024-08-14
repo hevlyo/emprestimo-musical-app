@@ -26,13 +26,15 @@ export default function Recursos() {
     onValue(dbRef, (snapshot) => {
       snapshot.forEach((childSnapshot) => {
         const childKey = childSnapshot.key;
-        let data = {
-          nome: childSnapshot.val().nome,
-          codigo: childSnapshot.val().codigo,
-          ano: childSnapshot.val().ano,
-          marca: childSnapshot.val().marca
+        if (childSnapshot.val().disponivel === true) {
+          let data = {
+            nome: childSnapshot.val().nome,
+            codigo: childSnapshot.val().codigo,
+            ano: childSnapshot.val().ano,
+            marca: childSnapshot.val().marca
+          }
+          setRecursos(oldArray => [...oldArray, data]);
         }
-        setRecursos(oldArray => [...oldArray, data]);
       });
     });
 
