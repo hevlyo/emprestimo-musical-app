@@ -36,10 +36,10 @@ export default function Recursos() {
 
   useEffect(() =>{
     
-    function listarRecursos() {
+    async function listarRecursos() {
       setRecursos([]);
       const dbRef = ref(database, 'recursos');
-      onValue(dbRef, (snapshot) => {
+      await onValue(dbRef, (snapshot) => {
         snapshot.forEach((childSnapshot) => {
           const childKey = childSnapshot.key;
           if (childSnapshot.val().disponivel === true) {
@@ -52,8 +52,6 @@ export default function Recursos() {
             setRecursos(oldArray => [...oldArray, data]);
           }
         }); 
-      }, {
-          onlyOnce: true
       });
       
     }
@@ -72,11 +70,11 @@ export default function Recursos() {
     })
 
     .then(() => {
-      alert("Recurso cadastrado com sucesso");
+      console.log("Recurso cadastrado com sucesso");
     })
 
     .catch((error) => {
-      alert("Ocorreu um erro: "+error.code)
+      console.log("Ocorreu um erro: "+error.code)
     })
   }
  
@@ -96,21 +94,23 @@ export default function Recursos() {
 
   }
 
-  function reservarRecurso() {
+  async function reservarRecurso() {
     const dbRef = ref(database, 'recursos');
-    const codRecursoLowcase = codRecurso; 
+    let codRecursoLowcase = codRecurso; 
 
     onValue(dbRef, (snapshot) => {
+      let childKey;
+      let childNome
       snapshot.forEach((childSnapshot) => {
-        const childKey = childSnapshot.key;
+        
         if (childSnapshot.val().codigo === codRecursoLowcase.toLowerCase().trim() && childSnapshot.val().disponivel === true) {
-            deixarRecursoIndisponivel(childKey);
-            cadastrarRecurso(childSnapshot.val().nome, user.uid, user.email, childKey);
-            setCodRecurso('');
-            alert(childSnapshot.val().nome + " reservado com sucesso");
-            return;
+            childKey = childSnapshot.key;
+            childNome = childSnapshot.val().nome;
         }
       });
+      cadastrarRecurso(childNome, user.uid, user.email, childKey);
+      setCodRecurso('');
+      alert(childSnapshot.val().nome + " reservado com sucesso");
     });
   }
 
@@ -126,7 +126,7 @@ export default function Recursos() {
         value={codRecurso}
       />
       <Button title='Reservar recurso' onPress={reservarRecurso}/>
-      <Text style={styles.titulo2}>Recursos Disponíveis</Text>
+      <Text style={styles.titulo}>Recursos Disponíveis</Text>
 
       {/* TextInput
         style={styles.input}

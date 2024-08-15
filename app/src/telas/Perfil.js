@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
 import { auth } from '../firebaseConnection';
+import { updateEmail } from 'firebase/auth';
 import { database, ref, set, onValue } from '../firebaseConnection';
 import { useEffect, useState } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -26,9 +27,10 @@ export default function Perfil() {
     }
   }, []);
 
-  function handleSave() {
+  async function handleSave() {
     if (user && user.uid) {
       const userRef = ref(database, 'usuarios/' + user.uid);
+      await user.updateEmail(usuario.email);
       set(userRef, usuario)
         .then(() => {
           setIsEditing(false);
