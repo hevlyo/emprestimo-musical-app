@@ -1,168 +1,133 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, FlatList, TextInput, Button } from 'react-native';
-import { useState, useEffect } from 'react';
-import { database, ref, set, push, onValue, auth} from '../firebaseConnection';
-
+import { StyleSheet, Text, View, FlatList, TextInput, Button, Alert } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { database, ref, set, push, onValue, auth } from '../firebaseConnection';
 import { update } from 'firebase/database';
 
-const Item = ({data}) => (
-
-
+const Item = ({ data }) => (
   <View style={styles.divListRecursos}>
     <Text style={styles.title}>{data.nome}</Text>
     <View style={styles.divInterna}>
-        <View style={styles.divIntRow}>
-          <Text style={{fontWeight: 'bold'}}>Código:</Text>
-          <Text style={{textTransform: 'uppercase'}}>{"  "+data.codigo+"    "}</Text>
-          <Text style={{fontWeight: 'bold'}}>Ano:</Text>
-          <Text>{"  "+data.ano}</Text>
-        </View>
-        <View style={styles.divIntRowDir}>
-          <Text style={{fontWeight: 'bold'}}>Marca:</Text>
-          <Text>{"  "+data.marca}</Text>
-        </View>
-        
+      <View style={styles.divIntRow}>
+        <Text style={{ fontWeight: 'bold' }}>Código:</Text>
+        <Text style={{ textTransform: 'uppercase' }}>{"  " + data.codigo + "    "}</Text>
+        <Text style={{ fontWeight: 'bold' }}>Ano:</Text>
+        <Text>{"  " + data.ano}</Text>
+      </View>
+      <View style={styles.divIntRowDir}>
+        <Text style={{ fontWeight: 'bold' }}>Marca:</Text>
+        <Text>{"  " + data.marca}</Text>
+      </View>
     </View>
-    
   </View>
 );
 
 export default function Recursos() {
   const user = auth.currentUser;
   const [recursos, setRecursos] = useState([]);
-  const [nomeRecurso, setNomeRecurso] = useState('');
   const [codRecurso, setCodRecurso] = useState('');
-  const [marca, setMarca] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() =>{
-    
-    async function listarRecursos() {
-      setRecursos([]);
+  useEffect(() => {
+    const listarRecursos = async () => {
       const dbRef = ref(database, 'recursos');
-      await onValue(dbRef, (snapshot) => {
+      onValue(dbRef, (snapshot) => {
+        const recursosArray = [];
         snapshot.forEach((childSnapshot) => {
-          const childKey = childSnapshot.key;
-          if (childSnapshot.val().disponivel === true) {
-            let data = {
-              nome: childSnapshot.val().nome,
-              codigo: childSnapshot.val().codigo,
-              ano: childSnapshot.val().ano,
-              marca: childSnapshot.val().marca
-            }
-            setRecursos(oldArray => [...oldArray, data]);
+          const data = childSnapshot.val();
+          if (data.disponivel) {
+            recursosArray.push({
+              nome: data.nome,
+              codigo: data.codigo,
+              ano: data.ano,
+              marca: data.marca,
+              key: childSnapshot.key,
+            });
           }
-        }); 
+        });
+        setRecursos(recursosArray);
       });
-      
-    }
+    };
     listarRecursos();
+  }, []);
 
-  }, [])
+  const reservarRecurso = useCallback(async () => {
+    if (loading) return;
 
-  function cadastrarRecurso(nomeRecurso, keyUser, emailUser, keyRecurso) {
+    setLoading(true);
+    const dbRef = ref(database, 'recursos');
+    let recursoReservado = null;
+
+    try {
+      await new Promise((resolve) => {
+        onValue(dbRef, (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            if (data.codigo.toLowerCase().trim() === codRecurso.toLowerCase().trim() && data.disponivel) {
+              recursoReservado = {
+                nome: data.nome,
+                key: childSnapshot.key,
+              };
+              deixarRecursoIndisponivel(childSnapshot.key);
+              return true;
+            }
+          });
+          resolve();
+        }, { onlyOnce: true });
+      });
+
+      if (recursoReservado) {
+        cadastrarRecurso(recursoReservado.nome, user.uid, user.email, recursoReservado.key);
+        Alert.alert(`${recursoReservado.nome} reservado com sucesso`);
+      } else {
+        Alert.alert('Recurso não encontrado ou não disponível');
+      }
+    } catch (error) {
+      Alert.alert('Erro ao reservar recurso:', error.message);
+    } finally {
+      setCodRecurso('');
+      setLoading(false);
+    }
+  }, [codRecurso, loading, user]);
+
+  const cadastrarRecurso = (nomeRecurso, keyUser, emailUser, keyRecurso) => {
     const emprestimoRef = ref(database, 'emprestimos');
     const newEmprestimoRef = push(emprestimoRef);
-     set(newEmprestimoRef, {
-        nomeRecurso: nomeRecurso,
-        keyRecurso: keyRecurso,
-        keyUser: keyUser,
-        emailUser: emailUser,
+    
+    set(newEmprestimoRef, {
+      nomeRecurso,
+      keyRecurso,
+      keyUser,
+      emailUser,
     })
+      .then(() => console.log('Recurso cadastrado com sucesso'))
+      .catch((error) => console.log('Erro ao cadastrar recurso:', error));
+  };
 
-    .then(() => {
-      console.log("Recurso cadastrado com sucesso");
-    })
-
-    .catch((error) => {
-      console.log("Ocorreu um erro: "+error.code)
-    })
-  }
- 
-
-  function deixarRecursoIndisponivel(keyRecurso){
+  const deixarRecursoIndisponivel = (keyRecurso) => {
     const updates = {};
-    updates['recursos/'+keyRecurso+'/disponivel'] = false;
+    updates[`recursos/${keyRecurso}/disponivel`] = false;
 
     update(ref(database), updates)
-      .then(() =>{
-        console.log("Dados atualizados com sucesso!");
-      })
-
-      .catch((error) =>{
-        console.error("Erro ao atualizar dados: ", error);
-      })
-
-  }
-
-  async function reservarRecurso() {
-    const dbRef = ref(database, 'recursos');
-    let codRecursoLowcase = codRecurso; 
-
-    onValue(dbRef, (snapshot) => {
-      let childKey;
-      let childNome
-      snapshot.forEach((childSnapshot) => {
-        
-        if (childSnapshot.val().codigo === codRecursoLowcase.toLowerCase().trim() && childSnapshot.val().disponivel === true) {
-            childKey = childSnapshot.key;
-            childNome = childSnapshot.val().nome;
-        }
-      });
-      cadastrarRecurso(childNome, user.uid, user.email, childKey);
-      setCodRecurso('');
-      alert(childSnapshot.val().nome + " reservado com sucesso");
-    });
-  }
-
-  
+      .then(() => console.log('Recurso marcado como indisponível'))
+      .catch((error) => console.error('Erro ao atualizar recurso:', error));
+  };
 
   return (
     <View style={styles.container}>
-       <Text style={styles.titulo}>Reserve um recurso</Text>
-       <TextInput
+      <Text style={styles.titulo}>Reserve um recurso</Text>
+      <TextInput
         style={styles.input}
-        placeholder='Digite o código do recurso para reserva-lo'
-        onChangeText={(texto) => setCodRecurso(texto)}
+        placeholder='Digite o código do recurso para reservá-lo'
+        onChangeText={setCodRecurso}
         value={codRecurso}
       />
-      <Button title='Reservar recurso' onPress={reservarRecurso}/>
+      <Button title='Reservar recurso' onPress={reservarRecurso} disabled={loading} />
       <Text style={styles.titulo}>Recursos Disponíveis</Text>
-
-      {/* TextInput
-        style={styles.input}
-        placeholder='Nome do recurso'
-        onChangeText={(texto) => setNomeRecurso(texto)}
-        value={nomeRecurso}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder='Código do recurso'
-        onChangeText={(texto) => setCodRecurso(texto)}
-        value={codRecurso}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder='Ano de fabricação'
-        onChangeText={(texto) => setAnoRecurso(texto)}
-        value={anoRecurso}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder='Marca'
-        onChangeText={(texto) => setMarca(texto)}
-        value={marca}
-      />
-
-      <Button title='Salvar' onPress={cadastrarRecurso}/>
- */}
       <FlatList
         data={recursos}
-        keyExtractor={item => item.key}
-        renderItem={ ({item}) => <Item data={item} />}
-        
+        keyExtractor={(item) => item.key}
+        renderItem={({ item }) => <Item data={item} />}
       />
       <StatusBar style="auto" />
     </View>
@@ -177,19 +142,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     justifyContent: 'flex-start',
   },
-
   input: {
-    //width: '200%',
     marginBottom: 10,
-
     padding: 10,
     borderWidth: 1,
     marginTop: 10,
     borderColor: '#ccc',
     borderRadius: 10,
-    
   },
-
   titulo: {
     textAlign: 'center',
     fontWeight: '700',
@@ -197,7 +157,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 15,
   },
-
   divListRecursos: {
     backgroundColor: '#e5e5e5',
     paddingHorizontal: 10,
@@ -211,24 +170,17 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 7,
   },
-
   divIntRow: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    alignItems: 'stretch'
   },
-
   divIntRowDir: {
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    alignItems: 'baseline',
   },
-
   title: {
     fontWeight: 'bold',
     fontSize: 15,
     marginBottom: 12,
-  }
+  },
 });

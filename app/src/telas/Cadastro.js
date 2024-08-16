@@ -118,14 +118,14 @@ export default function Cadastro() {
       {renderInputField("Email", form.email, (value) => handleChange('email', value), "Seu email", "email-address")}
       {renderInputField("Matrícula", form.matricula, (value) => handleChange('matricula', value), "Sua matrícula")}
       {renderInputField("Data de nascimento", form.dataNascimento, (value) => handleChange('dataNascimento', formatDate(value)), "DD/MM/AAAA", "numeric")}
-      {renderInputField("Telefone celular", form.telefone, (value) => handleChange('telefone celular', value), "Seu telefone celular", "phone-pad")}
+      {renderInputField("Telefone celular", form.telefone, (value) => handleChange('telefone', value), "Seu telefone celular", "phone-pad")}
       {renderInputField("Crie uma senha", form.password, (value) => handleChange('password', value), "Deve ter no mínimo 6 caracteres", "default", true)}
 
       <Button title="Cadastrar-se" color="red" onPress={cadastrar} />
     </View>
   );
 }
-
+''
 const styles = StyleSheet.create({
   container: {
     flex: 1,

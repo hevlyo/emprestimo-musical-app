@@ -30,7 +30,6 @@ export default function Perfil() {
   async function handleSave() {
     if (user && user.uid) {
       const userRef = ref(database, 'usuarios/' + user.uid);
-      await user.updateEmail(usuario.email);
       set(userRef, usuario)
         .then(() => {
           setIsEditing(false);
